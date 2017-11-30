@@ -277,7 +277,16 @@ class frontend
 						</div>
 						<?php } else { ?>
 						<div class="scat__cat-pricebox">
-							<p class="regular-price"><?php echo $settings['currency'].$v->price ?></p>
+							<p class="regular-price">
+								<?php 
+									if ( $v->price == 0 ) {
+										echo '<span class="free-price">'.__('Free', 'free').'</span>';
+									}
+									else {
+										echo $settings['currency'].$v->price;
+									}
+								?>
+							</p>
 						</div>
 						<?php } ?>
 						<?php if ($v->in_stock == 0) echo '<div class="scat__avaib">'.__('Out of stock', 'out of stock').'</div>'; ?>
@@ -420,20 +429,22 @@ class frontend
 				</div>
 
 				<?php
-					//show additional parameters
-					$arr_param = unserialize($arr_data[0]->params);
-					foreach ($arr_val as $key => $val) {
-						if ( $val['hide'] != '1' ) {
-							echo '<div class="scat__pr-param">';
-							$html = '';
-							switch ( $val['type'] ) {
-								case 0: $html = $arr_param[$val['id']]; break;
-								case 1: $html = $arr_param[$val['id']]; break;
-								case 2: $html = product_data::get_color_list_fr('param['.$val['id'].']', $arr_param[ $val['id'] ]); break;
-								case 3: $html = product_data::get_param_list_fr('param['.$val['id'].']', $arr_param[ $val['id'] ]); break;
+					if ( is_array($arr_data[0]->params) ) {
+						//show additional parameters
+						$arr_param = unserialize($arr_data[0]->params);
+						foreach ($arr_val as $key => $val) {
+							if ( $val['hide'] != '1' ) {
+								echo '<div class="scat__pr-param">';
+								$html = '';
+								switch ( $val['type'] ) {
+									case 0: $html = $arr_param[$val['id']]; break;
+									case 1: $html = $arr_param[$val['id']]; break;
+									case 2: $html = product_data::get_color_list_fr('param['.$val['id'].']', $arr_param[ $val['id'] ]); break;
+									case 3: $html = product_data::get_param_list_fr('param['.$val['id'].']', $arr_param[ $val['id'] ]); break;
+								}
+								if ($html != '<ul></ul>') echo '<b class="param-title '.$disabled.'">'.$val['name'].': </b>'.$html;
+								echo '</div>';
 							}
-							if ($html != '<ul></ul>') echo '<b class="param-title '.$disabled.'">'.$val['name'].': </b>'.$html;
-							echo '</div>';
 						}
 					}
 				?>
