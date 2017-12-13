@@ -24,6 +24,22 @@ class frontend
 		return $out_arr;
 	}
 
+	/*
+	 * get subcategories in category
+	*/
+	function get_category($id = "0")
+	{
+		global $wpdb;
+		$arr = $wpdb->get_results('SELECT * FROM '.$wpdb->prefix.'scat_cat WHERE `id`="'.$id.'" ORDER BY `name`');
+		if (sizeof($arr > 0)) {
+			foreach ($arr as $key => $value) {
+				$out_arr[$value->id] = $value;
+				$out_arr[$value->id]->parent_arr = self::get_list($value->id);
+			}
+		}
+		return $out_arr;
+	}
+
 
 	/*
 	 * get list of main subcategories
@@ -199,18 +215,26 @@ class frontend
 		</ul>
 
 		<?php
-		$arr_data = $wpdb->get_results('SELECT * FROM '.$wpdb->prefix.'scat_cat WHERE `id`="'.$id.'"');
-		echo '<header class="scat__header">';
-		echo '<h1 class="entry-title">'.$arr_data[0]->name.'</h1>';
-		if ( $arr_data[0]->parent == 0 ) {$show_toolbar = 0;}
-		else {$show_toolbar = 1;}
+		if ($id != '' ) {
+			$arr_data = $wpdb->get_results('SELECT * FROM '.$wpdb->prefix.'scat_cat WHERE `id`="'.$id.'"');
+			echo '<header class="scat__header">';
+			echo '<h1 class="entry-title">'.$arr_data[0]->name.'</h1>';
 
-		$dir = wp_upload_dir();
-		category_data::get_cat_images($id, $dir, 'frontend');
+			if ( $arr_data[0]->parent == 0 ) {$show_toolbar = 0;}
+			else {$show_toolbar = 1;}
+		}
+		else {
+			$show_toolbar = 1;
+		}
+
+		if ( $id != '' ){
+			$dir = wp_upload_dir();
+			category_data::get_cat_images($id, $dir, 'frontend');
+		}
 		echo '<div class="scat__descr">'.$arr_data[0]->descr.'</div>';
 		echo '</header>';
 
-		if ( $_REQUEST['id'] == '' ) {
+		if ( $id == '' ) {
 			$arr_data = $wpdb->get_results('SELECT * FROM '.$wpdb->prefix.'scat_products WHERE `hide`="0" ORDER BY `name`, `in_stock`');
 		}
 		else {
@@ -222,7 +246,6 @@ class frontend
 		if ($show_toolbar == 0) {
 			$arr = self::get_list($id);
 			self::main_categories($arr);
-			//print_r($arr);
 		}
 		else {
 			$arr = self::get_list();
@@ -429,7 +452,7 @@ class frontend
 				</div>
 
 				<?php
-					if ( is_array($arr_data[0]->params) ) {
+					if ( $arr[0]->params != 'N;' ) {
 						//show additional parameters
 						$arr_param = unserialize($arr_data[0]->params);
 						foreach ($arr_val as $key => $val) {

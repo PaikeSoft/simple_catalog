@@ -28,6 +28,7 @@ class category_data {
 			?>
 				<tr>
 					<td><?php echo $i.'.'.$a ?></td>
+					<td><?php echo $value->id; ?></td>
 					<td><a href="admin.php?page=scategories&action=edit&id=<?php echo $value->id; ?>"><?php echo $value->name; ?></a></td>
 					<td width="250"><?php category_data::get_parent_name($value->parent) ?></td>
 					<td class="wcb_edcol">
