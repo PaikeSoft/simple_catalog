@@ -168,29 +168,10 @@ class frontend
 		$arr_data = $wpdb->get_results('SELECT * FROM '.$wpdb->prefix.'posts WHERE `post_mime_type`="scategory"');
 		?>
 
-		<div class="scat__qv-wrap">
-			<div class="scat__qv-shadow"></div>
-			<div class="scat__qv-form">
-				<div class="scat__qv-content">
-					<div class="scat__qv-close"></div>
-					<div class="scat__qv-img-wrap">
-						<div class="scat__qv-buttons">
-							<div class="scat__qv-next"></div>
-							<div class="scat__qv-prev"></div>
-						</div>
-						<div class="scat__qv-image"></div>
-					</div>
-					<div class="scat__qv-area">
-						<div class="scat__qv-prname"></div>
-						<div class="scat__qv-pricebox"></div>
-
-						<div class="scat__qv-param par-avaib"></div>
-						<div class="scat__qv-param par-addit"></div>
-						<div class="scat__qv-descr"></div>
-					</div>
-				</div>
-			</div>
-		</div>
+		<?php
+		self::quick_view_template();
+		self::order_popup_template();
+		?>
 
 		<?php
 			//create breadcrumb
@@ -274,10 +255,12 @@ class frontend
 								break;
 								}
 						    }
-	
+							?>
+							<?php
 							if ($enter_img == 0) {
+								$url = plugins_url();
 								?>
-								<img src="<?php echo plugin_dir_url().'scatalog/images/no_photo.svg'; ?>" alt="<?php echo __('No photo', 'no photo'); ?>" title="<?php echo $entry; ?>" />
+								<img src="<?php echo $url.'/scatalog/images/no_photo.svg'; ?>" alt="<?php echo __('No photo', 'no photo'); ?>" title="<?php echo $entry; ?>" />
 								<?php
 							}
 							if ($settings['enable_pr_page'] == 1) echo '</a>';
@@ -285,9 +268,11 @@ class frontend
 					</div>
 					<div class="scat__cat-area">
 						<div class="scat__cat-prname">
+							<div data-name="<?php echo $v->id ?>">
 							<?php if ($settings['enable_pr_page'] == 1) echo '<a href="'.get_site_url().'/'.$settings['sproduct'].'?id='.$v->id.'">'; ?>
 							<?php echo $v->name ?>
 							<?php if ($settings['enable_pr_page'] == 1) echo '</a>'; ?>
+							</div>
 						</div>
 						<?php if ($settings['enable_quick_view'] == 1) { ?>
 							<div class="qv-button" data-id="<?php echo $v->id; ?>"></div>
@@ -322,17 +307,24 @@ class frontend
 							?>
 						</div>
 						<?php } ?>
+						<?php
+						if ( $settings['enable_add_to_cart'] == 1 ) {
+							echo '<button class="scat__btnorder" data-id="'.$v->id.'">'.$settings['button_text'].'</button>';
+						}
+						?>
 					</div>
 				</li>
 				<?php
 			}
 		echo '</ul>';
 		?>
+		<div class="clear"></div>
 		<div style="display: none;" class="data-form">
 			<input type="hidden" value="<?php echo plugin_dir_url(__FILE__); ?>" class="data_site-url" />
 			<input type="hidden" value="<?php echo __('In stock', 'in stock'); ?>" class="data_in-stock" />
 			<input type="hidden" value="<?php echo __('Out of stock', 'out of stock'); ?>" class="data_out-of-stock" />
 			<input type="hidden" value="<?php echo $settings['currency']; ?>" class="data_currency" />
+			<input type="hidden" value="<?php echo $settings['store_manager_email']; ?>" class="store_manager_email" />
 		</div>
 		<?php
 	}
@@ -347,17 +339,22 @@ class frontend
 		if ( $id == '' ) {
 			$id = $_REQUEST['id'];
 		}
-		$arr_link = $wpdb->get_results('SELECT * FROM '.$wpdb->prefix.'posts WHERE `post_mime_type`="scategory"');
-		
-		$arr_data = $wpdb->get_results('SELECT * FROM '.$wpdb->prefix.'scat_products WHERE `id`="'.$id.'"');
-		$v = $arr_data[0];
-		$cat = explode(',', $v->cat_id);
-		
-		if ( $v->hide == 1 ) {
+		if ( $_REQUEST['id'] == '' ) {
 			echo __('Product not found', 'product not found');
 			return;
 		}
-		
+
+		$arr_link = $wpdb->get_results('SELECT * FROM '.$wpdb->prefix.'posts WHERE `post_mime_type`="scategory"');
+
+		$arr_data = $wpdb->get_results('SELECT * FROM '.$wpdb->prefix.'scat_products WHERE `id`="'.$id.'"');
+		$v = $arr_data[0];
+		$cat = explode(',', $v->cat_id);
+
+		if ( $v->hide == 1 || !isset($arr_data[0])  ) {
+			echo __('Product not found', 'product not found');
+			return;
+		}
+
 		$settings = self::get_settings();
 
 		$path = wp_upload_dir();
@@ -367,6 +364,9 @@ class frontend
 			//create breadcrumb
 			$arr_br = self::cat_breadcrumbs($cat[0]);
 			$arr_br = array_reverse($arr_br);
+			
+			//new order
+			self::order_popup_template();
 		?>
 		<ul class="scat__br">
 			<li>
@@ -382,7 +382,7 @@ class frontend
 				<?php echo $v->name; ?>
 			</li>
 		</ul>
-		
+
 		<div class="scat__pr">
 			<header class="entry-header">
 				<h1 class="entry-title"><?php echo $v->name ?></h1>
@@ -410,8 +410,9 @@ class frontend
 				    }
 
 					if ($enter_img == 0) {
+						$url = plugins_url();
 						?>
-						<img src="<?php echo plugin_dir_url().'scatalog/images/no_photo.svg'; ?>" alt="<?php echo __('No photo', 'no photo'); ?>" title="<?php echo $entry; ?>" />
+						<img src="<?php echo $url.'/scatalog/images/no_photo.svg'; ?>" alt="<?php echo __('No photo', 'no photo'); ?>" title="<?php echo $entry; ?>" />
 						<?php
 					}
 				if ( $enter_img > 1 ) {
@@ -471,7 +472,21 @@ class frontend
 						}
 					}
 				?>
+
+				<div data-name="<?php echo $v->id ?>" style="display: none;">
+				<?php echo '<a href="'.get_site_url().'/'.$settings['sproduct'].'?id='.$v->id.'">'.$v->name.'</a>'; ?>
+				</div>
+				<div style="display: none;" class="data-form">
+					<input type="hidden" value="<?php echo plugin_dir_url(__FILE__); ?>" class="data_site-url" />
+					<input type="hidden" value="<?php echo $settings['store_manager_email']; ?>" class="store_manager_email" />
+				</div>
 			</div>
+
+			<?php
+			if ( $settings['enable_add_to_cart'] == 1 ) {
+				echo '<button class="scat__pr-btnorder" data-id="'.$id.'">'.$settings['button_text'].'</button>';
+			}
+			?>
 
 			<div class="clearfix"></div>
 			<div class="scat__pr-content">
@@ -480,6 +495,7 @@ class frontend
 				</ul>
 				<?php echo $v->description; ?>
 			</div>
+			<div class="send"></div>
 		</div>
 		<?php
 	}
@@ -585,6 +601,24 @@ class frontend
 		}
 
 		return $arr;
+	}
+
+
+	/*
+	 * get quick view
+	*/
+	function quick_view_template()
+	{
+		include(WP_PLUGIN_DIR.'/scatalog/templates/quick_view.php');
+	}
+
+
+	/*
+	 * get order popup
+	*/
+	function order_popup_template()
+	{
+		include(WP_PLUGIN_DIR.'/scatalog/templates/new_order.php');
 	}
 }
 ?>

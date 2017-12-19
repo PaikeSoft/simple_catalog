@@ -1,6 +1,6 @@
 <div class="wrap">
 	<h1>
-		<?php echo __( 'Parameters', 'parameters' ); ?> 
+		<?php echo __( 'Parameters', 'parameters' ); ?>
 		<a class="page-title-action" href="admin.php?page=sparameters&action=add"><?php echo __( 'Add New', 'add new' ); ?></a>
 	</h1>
 
@@ -36,7 +36,7 @@ if ( sizeof($arr) > 0 ) {
 			get_options($value['child'] ,$i);
 		$i++;
 	} 
-} 
+}
 ?>
 </table>
 </div>
@@ -56,7 +56,7 @@ function get_options($arr, $s){
 			</tr>
 			<?php
 			if ( is_array($v['child']) ) {
-				get_options($v['child'],$s.'.'.$i);
+				get_options($v['child'], $s.'.'.$i);
 			}
 			$i++;
 		}

@@ -235,4 +235,4 @@ class product_data {
 	}
 
 }
-?> 
+?>

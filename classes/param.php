@@ -1,6 +1,5 @@
 <?php 
 class param_data { 
-
 	/* 
 	 * Show childrens param for select in parameter page 
 	*/
@@ -79,5 +78,4 @@ class param_data {
 		return $html;
 	}
 }
-
-?> 
+?>
