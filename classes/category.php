@@ -3,11 +3,12 @@ class category_data {
 	/*
 	 * get list category
 	*/
-	function get_list($parent = "")
+	static function get_list($parent = "")
 	{
 		global $wpdb;
 		$arr = $wpdb->get_results('SELECT * FROM '.$wpdb->prefix.'scat_cat WHERE `parent`="'.$parent.'" ORDER BY `name`');
-		if (sizeof($arr > 0)) {
+		$out_arr = array();
+		if (isset($arr)) {
 			foreach ($arr as $key => $value) {
 				$out_arr[$value->id] = $value;
 				$out_arr[$value->id]->parent_arr = self::get_list($value->id);
@@ -20,7 +21,7 @@ class category_data {
 	/*
 	 * show list category
 	*/
-	function show_list($arr = "", $i)
+	static function show_list($arr = "", $i)
 	{
 		$a = 1;
 		if ( is_array($arr) ) {
@@ -46,7 +47,7 @@ class category_data {
 	/*
 	 * get parent category
 	*/
-	function get_parent($id = "", $parent = "")
+	static function get_parent($id = "", $parent = "")
 	{
 		global $wpdb;
 		
@@ -75,7 +76,7 @@ class category_data {
 	/*
 	 * get parent category name
 	*/
-	function get_parent_name($parent = "")
+	static function get_parent_name($parent = "")
 	{
 		global $wpdb;
 		$arr = $wpdb->get_results('SELECT * FROM '.$wpdb->prefix.'scat_cat WHERE `id`="'.$parent.'"');
@@ -87,7 +88,7 @@ class category_data {
 	/*
 	 * upload category photo
 	 */
-	function upload_photo($files, $dir, $id)
+	static function upload_photo($files, $dir, $id)
 	{
 		$error = 0;
 
@@ -125,7 +126,7 @@ class category_data {
 	/*
 	 * show category images
 	 */
-	function get_cat_images($id = '', $dir, $frontend = '') 
+	static function get_cat_images($id = '', $dir, $frontend = '') 
 	{
 		if ( file_exists($dir['basedir'].'/scat_category/'.$id) ) {
 			if ($handle = opendir($dir['basedir'].'/scat_category/'.$id) ) {	
